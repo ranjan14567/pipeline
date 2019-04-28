@@ -1,0 +1,25 @@
+node('slave')
+   {
+       stage('Git Checkout')
+       {
+           git credentialsId: 'git-credentials', url: 'https://github.com/binayakgithub/login.git'
+       }
+       stage('Maven Build')
+       {
+         def mvnhome=tool name: 'maven', type: 'maven'
+         sh "${mvnhome}/bin/mvn clean package"
+       }
+	   stage('Building Image')
+       {
+         sh 'docker build -t binayakredhat/login:v1 .'
+       }
+       stage('Push image to Dockerhub')
+       {
+         withCredentials([string(credentialsId: 'dockerhubpasswd', variable: 'dockerhubpasswd')]) {
+         sh "docker login -u binayakredhat -p ${dockerhubpasswd}"
+         sh 'docker push binayakredhat/login:v1'
+            
+        }
+             }
+    
+    }
